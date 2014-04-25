@@ -50,7 +50,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		Flow flow = getFlow("mainFlow");
 		MuleEvent event = flow.process(getTestEvent("", MessageExchangePattern.REQUEST_RESPONSE));
 
-		helper.awaitJobTermination(20 * 1000, 500);
+		helper.awaitJobTermination(60 * 1000, 500);
 		helper.assertJobWasSuccessful();
 
 		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("querySalesforce");
