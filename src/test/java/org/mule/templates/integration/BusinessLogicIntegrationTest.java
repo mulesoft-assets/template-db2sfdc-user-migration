@@ -40,7 +40,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 	@After
 	public void tearDown() throws Exception {
-		deleteUsersFromDB();
+		deleteUserFromDB();
 		// delete users from salesforce
 	}
 
@@ -50,7 +50,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		Flow flow = getFlow("mainFlow");
 		MuleEvent event = flow.process(getTestEvent("", MessageExchangePattern.REQUEST_RESPONSE));
 
-		helper.awaitJobTermination(60 * 1000, 500);
+		helper.awaitJobTermination(120 * 1000, 500);
 		helper.assertJobWasSuccessful();
 
 		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("querySalesforce");
@@ -74,7 +74,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		log.info("insertUserDB result: " + result);
 	}
 
-	private void deleteUsersFromDB() throws Exception {
+	private void deleteUserFromDB() throws Exception {
 		SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("deleteUserDB");
 		flow.initialise();
 

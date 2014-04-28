@@ -119,6 +119,11 @@
 <Dictionary>
 <Entry id="DictionaryEntry0" input="true" name="inputPayload" output="false" type="object"/>
 <Entry id="DictionaryEntry1" input="false" name="outputPayload" output="true" type="object"/>
+<Entry dictval.__javaType="java.lang.String" id="DictionaryEntry2" input="true" name="LocaleSidKey" output="true" type="string"/>
+<Entry dictval.__javaType="java.lang.String" id="DictionaryEntry3" input="true" name="LanguageLocaleKey" output="true" type="string"/>
+<Entry dictval.__javaType="java.lang.String" id="DictionaryEntry4" input="true" name="TimeZoneSidKey" output="true" type="string"/>
+<Entry dictval.__javaType="java.lang.String" id="DictionaryEntry5" input="true" name="EmailEncodingKey" output="true" type="string"/>
+<Entry dictval.__javaType="java.lang.String" id="DictionaryEntry6" input="true" name="ProfileId" output="true" type="string"/>
 </Dictionary>
 </Global>
 <Phase number="0">
@@ -148,16 +153,15 @@ output.Email = input.email;
 output.FirstName = input.firstname;
 output.Id = (isnull(input.sfid) ? null : (input.sfid));
 output.LastName = input.lastname;
-output.ProfileId = input.sfprofileid;
-output.LocaleSidKey = (isnull(input.sfid) ? ($(user.localeSidKey)) : null);
-output.LanguageLocaleKey = (isnull(input.sfid) ? ($(user.languageLocaleKey)) : null);
-output.TimeZoneSidKey = (isnull(input.sfid) ? ($(user.timeZoneSidKey)) : null);
 output.CommunityNickname = (isnull(input.sfid) ? (input.firstname) : null);
 output.Alias = (isnull(input.sfid) ? (input.firstname) : null);
-output.EmailEncodingKey = (isnull(input.sfid) ? ($(user.emailEncodingKey)) : null);
 output.Alias = (isnull(input.sfid) ? (input.firstname) : null);
 output.Username = (isnull(input.sfid) ? (input.email) : null);
-output.ProfileId = (isnull(input.sfid) ? ($(user.profileId)) : null);]]></attr>
+output.LocaleSidKey = inputArguments.LocaleSidKey;
+output.LanguageLocaleKey = inputArguments.LanguageLocaleKey;
+output.EmailEncodingKey = inputArguments.EmailEncodingKey;
+output.TimeZoneSidKey = inputArguments.TimeZoneSidKey;
+output.ProfileId = inputArguments.ProfileId;]]></attr>
 </Node>
 <Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
 <attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
