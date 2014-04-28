@@ -21,20 +21,20 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin I want to syncronize Users between two Salesfoce orgs.
+As a Salesforce admin I want to syncronize Users database and Salesfoce org.
 
-This Template should serve as a foundation for the process of migrating Users from one Salesfoce instance to another, being able to specify filtering criterias and desired behaviour when an User already exists in the destination org. 
+This Template should serve as a foundation for the process of migrating Users from database to one Salesfoce instance, being able to specify filtering criterias and desired behaviour when an User already exists in the destination org. 
 
 As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in  Input, Process and On Complete stages.
-During the Input stage the Template will go to the SalesForce Org A and query all the existing Users that match the filter criteria.
-During the Process stage, each SFDC User will be filtered depending on, if it has an existing matching User in the SFDC Org B and if the last updated date of the later is greater than the one of SFDC Org A.
-The last step of the Process stage will group the Users and create them in SFDC Org B.
+During the Input stage the Template will go to the Database and query all the existing Users that match the filter criteria.
+During the Process stage, each database user will be filtered depending on, if it has an existing matching User in the SFDC Org.
+The last step of the Process stage will group the users and create them in SFDC Org.
 Finally during the On Complete stage the Template will both otput statistics data into the console and send a notification email with the results of the batch excecution. 
 
 # Run it! <a name="runit"/>
 
-Simple steps to get SFDC to SFDC Users Migration running.
+Simple steps to get Database to SFDC Users Migration running.
 
 In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
 
@@ -55,13 +55,17 @@ Once you have imported your Anypoint Template into Anypoint Studio you need to f
 
 + Locate the properties file `mule.dev.properties`, in src/main/resources
 + Complete all the properties required as per the examples in the section [Properties to be configured](#propertiestobeconfigured)
++ Add dependency for your Database driver to the pom.xml or simplt add external jar to the build path and rebuild project
++ Configure GenericDatabaseConnector in Global Elements section of the config flow to use your database specific driver. Classpath to the driver needs to be supplied here.
++ By default this template relies on existing table **"user"** in the database of your choice, so it will perform sql statements against this table, but feel free to customize prepared statements to use different database table or columns.
 + Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
 
 
 ### Running on Mule ESB stand alone  <a name="runonmuleesbstandalone"/>
-Complete all properties in one of the property files, for example in [mule.prod.properties] (../blob/master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`.
+
+Complete all properties in one of the property files, for example in [mule.prod.properties] (../blob/master/src/main/resources/mule.prod.properties). Follow other steps defined [here](#runonpremise) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`.
 
 Once your app is all set and started, there is no need to do anything else. The application will poll SalesForce to know if there are any newly created or updated objects and synchronice them.
 
@@ -69,8 +73,7 @@ Once your app is all set and started, there is no need to do anything else. The 
 ## Running on CloudHub <a name="runoncloudhub"/>
 
 While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**. 
-
-Once your app is all set and started, supposing you choose as domain name `sfdcusermigration` to trigger the use case you just need to hit `http://sfdcusermigration.cloudhub.io/migrateusers` and report will be sent to the emails configured.
+Follow other steps defined [here](#runonpremise) and once your app is all set and started, supposing you choose as domain name `sfdcusermigration` to trigger the use case you just need to hit `http://sfdcusermigration.cloudhub.io/migrateusers` and report will be sent to the emails configured.
 
 ### Deploying your Anypoint Template on CloudHub <a name="deployingyouranypointtemplateoncloudhub"/>
 Mule Studio provides you with really easy way to deploy your Template directly to CloudHub, for the specific steps to do so please check this [link](http://www.mulesoft.org/documentation/display/current/Deploying+Mule+Applications#DeployingMuleApplications-DeploytoCloudHub)
@@ -87,14 +90,10 @@ In order to use this Template you need to configure properties (Credentials, con
 + sfdc.a.username `bob.dylan@orga`
 + sfdc.a.password `DylanPassword123`
 + sfdc.a.securityToken `avsfwCUl7apQs56Xq2AKi3X`
-+ sfdc.a.url `https://login.salesforce.com/services/Soap/u/26.0`
++ sfdc.a.url `https://login.salesforce.com/services/Soap/u/28.0`
 
-#### SalesForce Connector configuration for company B
-+ sfdc.b.username `joan.baez@orgb`
-+ sfdc.b.password `JoanBaez456`
-+ sfdc.b.securityToken `ces56arl7apQs56XTddf34X`
-+ sfdc.b.url `https://login.salesforce.com/services/Soap/u/26.0`
-
+#### Dabase connection url
++ database.url=`jdbc:postgresql://localhost:5432/mule?user=postgres&password=postgres`
 
 #### EMail Details
 + mail.from `batch.migrateUsers.migration%40mulesoft.com`
@@ -105,13 +104,13 @@ In order to use this Template you need to configure properties (Credentials, con
 
 SalesForce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. User Migration Template calls to the API can be calculated using the formula:
 
-***1 + X + X / 200***
+***X + X / 200***
 
 Being ***X*** the number of Users to be synchronized on each run. 
 
 The division by ***200*** is because, by default, Users are gathered in groups of 200 for each Upsert API Call in the commit step. 
 
-For instance if 10 records are fetched from origin instance, then 21 api calls will be made (1 + 10 + 10).
+For instance if 10 records are fetched from origin instance, then 20 api calls will be made (10 + 10).
 
 
 # Customize It!<a name="customizeit"/>
