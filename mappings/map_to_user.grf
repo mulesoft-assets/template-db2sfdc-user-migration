@@ -149,15 +149,15 @@ output.FirstName = input.firstname;
 output.Id = (isnull(input.sfid) ? null : (input.sfid));
 output.LastName = input.lastname;
 output.ProfileId = input.sfprofileid;
-output.LocaleSidKey = (isnull(input.sfid) ? (${user.localeSidKey}) : null);
-output.LanguageLocaleKey = (isnull(input.sfid) ? (${user.languageLocaleKey}) : null);
-output.TimeZoneSidKey = (isnull(input.sfid) ? (${user.timeZoneSidKey}) : null);
+output.LocaleSidKey = (isnull(input.sfid) ? ($(user.localeSidKey)) : null);
+output.LanguageLocaleKey = (isnull(input.sfid) ? ($(user.languageLocaleKey)) : null);
+output.TimeZoneSidKey = (isnull(input.sfid) ? ($(user.timeZoneSidKey)) : null);
 output.CommunityNickname = (isnull(input.sfid) ? (input.firstname) : null);
 output.Alias = (isnull(input.sfid) ? (input.firstname) : null);
-output.EmailEncodingKey = (isnull(input.sfid) ? (${user.emailEncodingKey}) : null);
+output.EmailEncodingKey = (isnull(input.sfid) ? ($(user.emailEncodingKey)) : null);
 output.Alias = (isnull(input.sfid) ? (input.firstname) : null);
 output.Username = (isnull(input.sfid) ? (input.email) : null);
-output.ProfileId = (isnull(input.sfid) ? (${user.profileId}) : null);]]></attr>
+output.ProfileId = (isnull(input.sfid) ? ($(user.profileId)) : null);]]></attr>
 </Node>
 <Node cacheInMemory="true" enabled="enabled" fileURL="dict:outputPayload" guiName="Map&lt;k,v&gt; WRITER" guiX="900" guiY="20" id="MAP_WRITER0" type="MAP_WRITER">
 <attr name="mapping"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>

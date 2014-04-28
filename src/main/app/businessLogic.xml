@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:json="http://www.mulesoft.org/schema/mule/json" 
+<mule xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:json="http://www.mulesoft.org/schema/mule/json" 
 	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
 	xmlns:db="http://www.mulesoft.org/schema/mule/db" 
 	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" 
@@ -16,17 +16,15 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd">
     <data-mapper:config name="map_to_list_user_" transformationGraphPath="map_to_list_user_.grf" doc:name="map_to_list_user_"/>
     <data-mapper:config name="map_to_user" transformationGraphPath="map_to_user.grf" doc:name="map_to_user"/>
-    <flow name="mainFlow" doc:name="mainFlow">
-        <batch:execute name="syncUsersBatch" doc:name="trigger syncUsersBatch"/>
-        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="catch Exception and call defaultChoiceExceptionStrategy"/>
-    </flow>    
+    
     <batch:job name="syncUsersBatch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
-            <db:select config-ref="GenericDatabaseConnector" doc:name="Database">
+            <db:select config-ref="GenericDatabaseConnector" doc:name="Query database for users">
                 <db:template-query-ref name="QueryUsers"/>
             </db:select>
         </batch:input>
@@ -49,7 +47,7 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
 ]]></expression-component>
 
                 <data-mapper:transform config-ref="map_to_user" doc:name="Map current payload to Salesforce User object"/>
-                <batch:commit size="20" doc:name="Batch Commit">
+                <batch:commit size="200" doc:name="Batch Commit">
                     <sfdc:upsert config-ref="SalesforceA"  doc:name="upsert Users in Salesforce" externalIdFieldName="Id" type="User">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
@@ -58,10 +56,23 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
             </batch:step>
         </batch:process-records>
         <batch:on-complete>
-            <json:object-to-json-transformer doc:name="transform BatchJobInstance to JSON"/>
-            <logger message="Migration process has finished: #[payload]" level="INFO" doc:name="log migration process has finished"/>
+            <all doc:name="All">
+                <processor-chain>
+                    <json:object-to-json-transformer doc:name="transform BatchJobInstance to JSON"/>
+                    <logger message="Migration process has finished: #[payload]" level="INFO" doc:name="log migration process has finished"/>
+                </processor-chain>
+                <processor-chain>
+                    <json:object-to-json-transformer doc:name="transform BatchJobInstance to JSON"/>
+                    <smtp:outbound-endpoint host="${smtp.host}" port="${smtp.port}" user="${smtp.user}" password="${smtp.password}" to="${mail.to}" from="${mail.from}" subject="${mail.subject}" responseTimeout="10000" connector-ref="gmailConnector" doc:name="Send result of the batch in mail"/>
+                </processor-chain>
+            </all>
+
         </batch:on-complete>
     </batch:job>
+    <flow name="mainFlow" doc:name="mainFlow">
+        <batch:execute name="syncUsersBatch" doc:name="Trigger syncUsersBatch batch step"/>
+        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="catch Exception and call defaultChoiceExceptionStrategy"/>
+    </flow>
 
 
 </mule>
