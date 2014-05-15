@@ -45,6 +45,5 @@ local.properties
 .studio/
 flows/
 target/
-**/*.mflow
 /bin
 
