@@ -58,6 +58,20 @@ Once you have imported your Anypoint Template into Anypoint Studio you need to f
 + Add dependency for your Database driver to the pom.xml or simplt add external jar to the build path and rebuild project
 + Configure GenericDatabaseConnector in Global Elements section of the config flow to use your database specific driver. Classpath to the driver needs to be supplied here.
 + By default this template relies on existing table **"user"** in the database of your choice, so it will perform sql statements against this table, but feel free to customize prepared statements to use different database table or columns.
++ Script for creating database table (Postgres syntax)
+
+<pre>
+CREATE TABLE "user"
+(
+  firstname character varying,
+  lastname character varying,
+  salesforce_id character varying,
+  email character varying,
+  id serial NOT NULL,
+  CONSTRAINT pk_id PRIMARY KEY (id)
+)
+</pre>
+
 + Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
@@ -95,7 +109,7 @@ In order to use this Template you need to configure properties (Credentials, con
 #### Dabase connection url
 + database.url=`jdbc:postgresql://localhost:5432/mule?user=postgres&password=postgres`
 
-#### EMail Details
+#### Email Details
 + mail.from `batch.migrateUsers.migration%40mulesoft.com`
 + mail.to `cesar.garcia@mulesoft.com`
 + mail.subject `Batch Job Finished Report`
