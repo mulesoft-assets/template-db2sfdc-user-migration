@@ -55,7 +55,7 @@ Once you have imported your Anypoint Template into Anypoint Studio you need to f
 
 + Locate the properties file `mule.dev.properties`, in src/main/resources
 + Complete all the properties required as per the examples in the section [Properties to be configured](#propertiestobeconfigured)
-+ Add dependency for your Database driver to the pom.xml or simplt add external jar to the build path and rebuild project
++ Add dependency for your Database driver to the pom.xml or simply add external jar to the build path and rebuild project
 + Configure GenericDatabaseConnector in Global Elements section of the config flow to use your database specific driver. Classpath to the driver needs to be supplied here.
 + By default this template relies on existing table **"user"** in the database of your choice, so it will perform sql statements against this table, but feel free to customize prepared statements to use different database table or columns.
 + Script for creating database table (Postgres syntax)
@@ -71,7 +71,7 @@ CREATE TABLE "user"
   CONSTRAINT pk_id PRIMARY KEY (id)
 )
 </pre>
-
++ Optionally customize query templates in `config.mflow` if they don't match sql grammar of database of your choice
 + Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
