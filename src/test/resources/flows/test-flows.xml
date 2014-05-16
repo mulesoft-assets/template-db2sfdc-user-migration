@@ -7,14 +7,14 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd">
     <sub-flow name="insertUserDB" doc:name="insertUserDB">
-        <db:insert config-ref="GenericDatabaseConnector" doc:name="Database">
-            <db:dynamic-query><![CDATA[INSERT INTO "user"(firstname, lastname, email)
+        <db:insert config-ref="GenericDatabaseConnectorMySql" doc:name="Database">
+            <db:dynamic-query><![CDATA[INSERT INTO sf_user(firstname, lastname, email)
 VALUES ('#[payload.firstname]', '#[payload.lastname]', '#[payload.email]')]]></db:dynamic-query>
         </db:insert>
     </sub-flow>
     <sub-flow name="deleteUserDB" doc:name="deleteUserDB">
-        <db:delete config-ref="GenericDatabaseConnector" doc:name="Database">
-            <db:dynamic-query><![CDATA[delete from "user" where email = '#[payload.email]']]></db:dynamic-query>
+        <db:delete config-ref="GenericDatabaseConnectorMySql" doc:name="Database">
+            <db:dynamic-query><![CDATA[delete from sf_user where email = '#[payload.email]']]></db:dynamic-query>
         </db:delete>
     </sub-flow>
     <sub-flow name="querySalesforce" doc:name="querySalesforce">

@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smt
     <batch:job name="syncUsersBatch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
-            <db:select config-ref="GenericDatabaseConnector" doc:name="query database for users">
+            <db:select config-ref="GenericDatabaseConnectorMySql" doc:name="query database for users">
                 <db:template-query-ref name="QueryUsers"/>
             </db:select>
         </batch:input>
