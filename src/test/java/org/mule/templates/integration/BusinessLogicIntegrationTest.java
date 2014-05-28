@@ -47,8 +47,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testMainFlow() throws Exception {
-		Flow flow = getFlow("mainFlow");
-		MuleEvent event = flow.process(getTestEvent("", MessageExchangePattern.REQUEST_RESPONSE));
+		runFlow("mainFlow");
 
 		helper.awaitJobTermination(120 * 1000, 500);
 		helper.assertJobWasSuccessful();
@@ -56,7 +55,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("querySalesforce");
 		subflow.initialise();
 
-		event = subflow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
+		MuleEvent event = subflow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
 		Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
 		log.info("querySalesforce result: " + result);
 
