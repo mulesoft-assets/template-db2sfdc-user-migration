@@ -70,7 +70,7 @@ CREATE TABLE `sf_user` (
   PRIMARY KEY (`id`)
 )
 </pre>
-+ Optionally customize query templates in `config.mflow` if they don't match sql grammar of database of your choice
++ Optionally customize query templates in `config.xml` if they don't match sql grammar of database of your choice
 + Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
