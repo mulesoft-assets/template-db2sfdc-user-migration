@@ -34,7 +34,6 @@ http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smt
         </batch:input>
         <batch:process-records>
             <batch:step name="foreachUserFetchSalesforceStep">
-                <logger message="YYYYYYYYYYYYYYYYYYYYYYYYYYYYY #[payload]" level="INFO" doc:name="Logger"/>
                 <enricher source="#[payload]" target="#[recordVars['userInSF']]" doc:name="store result in record var 'userInSF'">
                     <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
                 </enricher>
@@ -60,13 +59,11 @@ http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smt
                         <data-mapper:input-argument key="TimeZoneSidKey">#[payload.sfid == null ? '${user.timeZoneSidKey}' : null]</data-mapper:input-argument>
                     </data-mapper:input-arguments>
                 </data-mapper:transform>
-                <logger message="XXXXXXXXXXXXXXXXXXXXXXX #[payload]" level="INFO" doc:name="Logger"/>
 
                 <batch:commit size="200" doc:name="Batch Commit">
                     <sfdc:upsert config-ref="SalesforceA"  doc:name="upsert Users in Salesforce" externalIdFieldName="Id" type="User">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
-                    <logger message="#[payload]" level="INFO" doc:name="log result"/>
                 </batch:commit>
 
             </batch:step>
