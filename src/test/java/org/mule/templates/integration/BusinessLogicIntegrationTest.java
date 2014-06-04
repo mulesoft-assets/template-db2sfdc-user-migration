@@ -55,7 +55,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 	@After
 	public void tearDown() throws Exception {
-		deleteUserFromDB();
+		//deleteUserFromDB();
 		DBCREATOR.tearDownDataBase();
 	}
 
