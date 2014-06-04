@@ -30,6 +30,7 @@ http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smt
 
 
 
+
             </db:select>
         </batch:input>
         <batch:process-records>

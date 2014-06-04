@@ -1,5 +1,6 @@
 package org.mule.templates.integration;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -7,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mule.MessageExchangePattern;
@@ -15,6 +17,7 @@ import org.mule.construct.Flow;
 import org.mule.processor.chain.SubflowInterceptingChainLifecycleWrapper;
 import org.mule.tck.junit4.rule.DynamicPort;
 import org.mule.templates.builders.ObjectBuilder;
+import org.mule.templates.db.MySQLDbCreator;
 
 import com.mulesoft.module.batch.BatchTestHelper;
 
@@ -26,11 +29,23 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 	private static Logger log = Logger.getLogger(BusinessLogicIntegrationTest.class);
 
+	private static final String PATH_TO_TEST_PROPERTIES = "./src/test/resources/mule.test.properties";
+	private static final String PATH_TO_SQL_SCRIPT = "src/main/resources/user.sql";
+	private static final String DATABASE_NAME = "DB2SFDCUserMigration" + new Long(new Date().getTime()).toString();
+	private static final MySQLDbCreator DBCREATOR = new MySQLDbCreator(DATABASE_NAME, PATH_TO_SQL_SCRIPT, PATH_TO_TEST_PROPERTIES);
+
 	Map<String, Object> user = null;
 	private BatchTestHelper helper;
 
 	@Rule
 	public DynamicPort port = new DynamicPort("http.port");
+	
+	@BeforeClass
+	public static void init() {
+		System.setProperty("database.url", DBCREATOR.getDatabaseUrlWithName());
+		DBCREATOR.setUpDatabase();
+	}
+
 
 	@Before
 	public void setUp() throws Exception {
@@ -41,7 +56,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	@After
 	public void tearDown() throws Exception {
 		deleteUserFromDB();
-		// delete users from salesforce
+		DBCREATOR.tearDownDataBase();
 	}
 
 	@Test
@@ -83,17 +98,12 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	}
 
 	private Map<String, Object> createDbUser() {
-		String name = buildUniqueName(8);
+		String name = "tst" + new Long(new Date().getTime()).toString();
 		return ObjectBuilder.aUser()
 				.with("firstname", name)
 				.with("lastname", name)
-				.with("email", name + "@fakeemail.com")
+				// set email to existin sf user to prevent creating new one
+				.with("email","tstlrssi.1401865118651@fakemailuser-broadcast.com")
 				.build();
 	}
-
-	private String buildUniqueName(int length) {
-		String name = RandomStringUtils.randomAlphabetic(length).toLowerCase();
-		return name;
-	}
-
 }
