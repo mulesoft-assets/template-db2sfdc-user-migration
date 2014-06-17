@@ -24,6 +24,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
     <batch:job name="syncUsersBatch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
+            <logger message="XXXXXXXXXXXXXXX" level="INFO" doc:name="Logger"/>
             <db:select config-ref="GenericDatabaseConnectorMySql" doc:name="query database for users">
                 <db:parameterized-query><![CDATA[select firstname, lastname, id, email, salesforce_id from sf_user]]></db:parameterized-query>
 
@@ -35,6 +36,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
         </batch:input>
         <batch:process-records>
             <batch:step name="foreachUserFetchSalesforceStep">
+                <logger message="AAAAAAAAAAAAAAAAA #[payload]" level="INFO" doc:name="Logger"/>
                 <enricher source="#[payload]" target="#[recordVars['userInSF']]" doc:name="store result in record var 'userInSF'">
                     <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
                 </enricher>
@@ -65,6 +67,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
                     <sfdc:upsert config-ref="SalesforceA"  doc:name="upsert Users in Salesforce" externalIdFieldName="Id" type="User">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
+                    <logger message="#[payload]" level="INFO" doc:name="log result"/>
                 </batch:commit>
 
             </batch:step>

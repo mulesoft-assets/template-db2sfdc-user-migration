@@ -1,9 +1,11 @@
 package org.mule.templates.integration;
 
+import java.io.FileInputStream;
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
@@ -13,7 +15,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mule.MessageExchangePattern;
 import org.mule.api.MuleEvent;
-import org.mule.construct.Flow;
 import org.mule.processor.chain.SubflowInterceptingChainLifecycleWrapper;
 import org.mule.tck.junit4.rule.DynamicPort;
 import org.mule.templates.builders.ObjectBuilder;
@@ -34,6 +35,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	private static final String DATABASE_NAME = "DB2SFDCUserMigration" + new Long(new Date().getTime()).toString();
 	private static final MySQLDbCreator DBCREATOR = new MySQLDbCreator(DATABASE_NAME, PATH_TO_SQL_SCRIPT, PATH_TO_TEST_PROPERTIES);
 
+	private String emailUser = null;
 	Map<String, Object> user = null;
 	private BatchTestHelper helper;
 
@@ -49,6 +51,15 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
 	@Before
 	public void setUp() throws Exception {
+		
+		final Properties props = new Properties();
+		try {
+			props.load(new FileInputStream(PATH_TO_TEST_PROPERTIES));
+		} catch (Exception e) {
+			log.error("Error occured while reading mule.test.properties", e);
+		}
+		emailUser = props.getProperty("existing.user.email");
+		
 		helper = new BatchTestHelper(muleContext);
 		createUsersInDB();
 	}
@@ -98,12 +109,12 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 	}
 
 	private Map<String, Object> createDbUser() {
-		String name = "tst" + new Long(new Date().getTime()).toString();
+		String name = "tst" + RandomUtils.nextInt(5);
 		return ObjectBuilder.aUser()
 				.with("firstname", name)
 				.with("lastname", name)
-				// set email to existin sf user to prevent creating new one
-				.with("email","tstlrssi.1401865118651@fakemailuser-broadcast.com")
+				// set email to existing saleforce user to prevent creating new one
+				.with("email", emailUser)
 				.build();
 	}
 }
