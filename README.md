@@ -1,20 +1,23 @@
-# Anypoint Template: DB to SFDC User Migration
+
+# Anypoint Template: Database to Salesforce User Migration
 
 + [License Agreement](#licenseagreement)
 + [Use Case](#usecase)
++ [Considerations](#considerations)
 + [Run it!](#runit)
-    * [Running on premise](#runonpremise)
-    * [Running on CloudHub](#runoncloudhub)
-    * [Properties to be configured](#propertiestobeconfigured)
+	* [Running on premise](#runonopremise)
+	* [Running on Studio](#runonstudio)
+	* [Running on Mule ESB stand alone](#runonmuleesbstandalone)
+	* [Running on CloudHub](#runoncloudhub)
+	* [Deploying your Anypoint Template on CloudHub](#deployingyouranypointtemplateoncloudhub)
+	* [Properties to be configured (With examples)](#propertiestobeconfigured)
 + [API Calls](#apicalls)
 + [Customize It!](#customizeit)
-    * [config.xml](#configxml)
-    * [endpoints.xml](#endpointsxml)
-    * [businessLogic.xml](#businesslogicxml)
-    * [errorHandling.xml](#errorhandlingxml)
+	* [config.xml](#configxml)
+	* [businessLogic.xml](#businesslogicxml)
+	* [endpoints.xml](#endpointsxml)
+	* [errorHandling.xml](#errorhandlingxml)
 
-
-   
 
 # License Agreement <a name="licenseagreement"/>
 Note that using this template is subject to the conditions of this [License Agreement](AnypointTemplateLicense.pdf).
@@ -30,27 +33,11 @@ The batch job is divided in  Input, Process and On Complete stages.
 During the Input stage the Template will go to the Database and query all the existing Users that match the filter criteria.
 During the Process stage, each database user will be filtered depending on, if it has an existing matching User in the SFDC Org.
 The last step of the Process stage will group the users and create them in SFDC Org.
-Finally during the On Complete stage the Template will both otput statistics data into the console and send a notification email with the results of the batch excecution. 
+Finally during the On Complete stage the Template will both otput statistics data into the console and send a notification email with the results of the batch excecution.
 
-# Run it! <a name="runit"/>
-
-Simple steps to get Database to SFDC Users Migration running.
-
-In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
-
-<pre>
-<h1>Batch Process initiated</h1>
-<b>ID:</b>6eea3cc6-7c96-11e3-9a65-55f9f3ae584e<br/>
-<b>Records to Be Processed: </b>9<br/>
-<b>Start execution on: </b>Mon Jan 13 18:05:33 GMT-03:00 2014
-</pre>
-
-## Running on premise <a name="runonpremise"/>
-
-In this section we detail the way you have to run you Anypoint Temple on you computer.
+# Considerations <a name="considerations"/>
 
 
-### Running on Studio <a name="runonstudio"/>
 Once you have imported your Anypoint Template into Anypoint Studio you need to follow these steps to run it:
 
 + Locate the properties file `mule.dev.properties`, in src/main/resources
@@ -75,27 +62,63 @@ CREATE TABLE `sf_user` (
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
 
+# Run it! <a name="runit"/>
+Simple steps to get Database to Salesforce User Migration running.
+In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
 
-### Running on Mule ESB stand alone  <a name="runonmuleesbstandalone"/>
+<pre>
+<h1>Batch Process initiated</h1>
+<b>ID:</b>6eea3cc6-7c96-11e3-9a65-55f9f3ae584e<br/>
+<b>Records to Be Processed: </b>9<br/>
+<b>Start execution on: </b>Mon Jan 13 18:05:33 GMT-03:00 2014
+</pre>
 
-Complete all properties in one of the property files, for example in [mule.prod.properties] (../blob/master/src/main/resources/mule.prod.properties). Follow other steps defined [here](#runonpremise) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`.
+## Running on premise <a name="runonopremise"/>
+In this section we detail the way you have to run you Anypoint Temple on you computer.
 
-Once your app is all set and started, there is no need to do anything else. The application will poll SalesForce to know if there are any newly created or updated objects and synchronice them.
 
+### Where to Download Mule Studio and Mule ESB
+First thing to know if you are a newcomer to Mule is where to get the tools.
+
++ You can download Mule Studio from this [Location](http://www.mulesoft.com/platform/mule-studio)
++ You can download Mule ESB from this [Location](http://www.mulesoft.com/platform/soa/mule-esb-open-source-esb)
+
+
+### Importing an Anypoint Template into Studio
+Mule Studio offers several ways to import a project into the workspace, for instance: 
+
++ Anypoint Studio generated Deployable Archive (.zip)
++ Anypoint Studio Project from External Location
++ Maven-based Mule Project from pom.xml
++ Mule ESB Configuration XML from External Location
+
+You can find a detailed description on how to do so in this [Documentation Page](http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio).
+
+
+### Running on Studio <a name="runonstudio"/>
+Once you have imported you Anypoint Template into Anypoint Studio you need to follow these steps to run it:
+
++ Locate the properties file `mule.dev.properties`, in src/main/resources
++ Complete all the properties required as per the examples in the section [Properties to be configured](#propertiestobeconfigured)
++ Once that is done, right click on you Anypoint Template project folder 
++ Hover you mouse over `"Run as"`
++ Click on  `"Mule Application"`
+
+
+### Running on Mule ESB stand alone <a name="runonmuleesbstandalone"/>
+Complete all properties in one of the property files, for example in [mule.prod.properties] (../blob/master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
+After this, to trigger the use case you just need to hit the local http endpoint with the port you configured in your file. If this is, for instance, `9090` then you should hit: `http://localhost:9090/migrateUsers` and this will create a CSV report and send it to the mails set.
 
 ## Running on CloudHub <a name="runoncloudhub"/>
-
-While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**. 
+While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**.
 Follow other steps defined [here](#runonpremise) and once your app is all set and started, supposing you choose as domain name `sfdcusermigration` to trigger the use case you just need to hit `http://sfdcusermigration.cloudhub.io/migrateusers` and report will be sent to the emails configured.
 
 ### Deploying your Anypoint Template on CloudHub <a name="deployingyouranypointtemplateoncloudhub"/>
 Mule Studio provides you with really easy way to deploy your Template directly to CloudHub, for the specific steps to do so please check this [link](http://www.mulesoft.org/documentation/display/current/Deploying+Mule+Applications#DeployingMuleApplications-DeploytoCloudHub)
 
 
-## Properties to be configured (With examples)<a name="propertiestobeconfigured"/>
-
-In order to use this Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
-
+## Properties to be configured (With examples) <a name="propertiestobeconfigured"/>
+In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
 + http.port `9090` 
 
@@ -114,7 +137,6 @@ In order to use this Template you need to configure properties (Credentials, con
 + mail.subject `Batch Job Finished Report`
 
 # API Calls <a name="apicalls"/>
-
 SalesForce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. User Migration Template calls to the API can be calculated using the formula:
 
 ***X + X / 200***
@@ -127,9 +149,8 @@ For instance if 10 records are fetched from origin instance, then 20 api calls w
 
 
 # Customize It!<a name="customizeit"/>
-
-This brief guide intends to give a high level idea of how this Template is built and how you can change it according to your needs.
-As mule applications are based on XML files, this page will be organised by describing all the XML that conform the Template.
+This brief guide intends to give a high level idea of how this Anypoint Template is built and how you can change it according to your needs.
+As mule applications are based on XML files, this page will be organized by describing all the XML that conform the Anypoint Template.
 Of course more files will be found such as Test Classes and [Mule Application Files](http://www.mulesoft.org/documentation/display/current/Application+Format), but to keep it simple we will focus on the XMLs.
 
 Here is a list of the main XML files you'll find in this application:
@@ -145,17 +166,6 @@ Configuration for Connectors and [Properties Place Holders](http://www.mulesoft.
 
 In the visual editor they can be found on the *Global Element* tab.
 
-## endpoints.xml<a name="endpointsxml"/>
-This is the file where you will found the inbound and outbound sides of your integration app.
-This Template has only an [HTTP Inbound Endpoint](http://www.mulesoft.org/documentation/display/current/HTTP+Endpoint+Reference) as the way to trigger the use case.
-
-###  Inbound Flow
-**HTTP Inbound Endpoint** - Start Report Generation
-+ `${http.port}` is set as a property to be defined either on a property file or in CloudHub environment variables.
-+ The path configured by default is `migrateUsers` and you are free to change for the one you prefer.
-+ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
-+ The endpoint is configured as a *request-response* since as a result of calling it the response will be the total of Users synced and filtered by the criteria specified.
-
 
 ## businessLogic.xml<a name="businesslogicxml"/>
 Functional aspect of the Template is implemented on this XML, directed by one flow responsible of excecuting the logic.
@@ -163,6 +173,22 @@ For the pourpose of this particular Template the *mainFlow* just excecutes a [Ba
 This flow has Exception Strategy that basically consists on invoking the *defaultChoiseExceptionStrategy* defined in *errorHandling.xml* file.
 
 
+
+## endpoints.xml<a name="endpointsxml"/>
+This is the file where you will found the inbound and outbound sides of your integration app.
+This Template has only an [HTTP Inbound Endpoint](http://www.mulesoft.org/documentation/display/current/HTTP+Endpoint+Reference) as the way to trigger the use case.
+
+### Inbound Flow
+**HTTP Inbound Endpoint** - Start Report Generation
++ `${http.port}` is set as a property to be defined either on a property file or in CloudHub environment variables.
++ The path configured by default is `migrateUsers` and you are free to change for the one you prefer.
++ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
++ The endpoint is configured as a *request-response* since as a result of calling it the response will be the total of Users synced and filtered by the criteria specified.
+
+
+
 ## errorHandling.xml<a name="errorhandlingxml"/>
-Contains a [Catch Exception Strategy](http://www.mulesoft.org/documentation/display/current/Catch+Exception+Strategy) that is only Logging the exception thrown (If so). As you imagine, this is the right place to handle how your integration will react depending on the different exceptions. 
+Contains a [Catch Exception Strategy](http://www.mulesoft.org/documentation/display/current/Catch+Exception+Strategy) that is only Logging the exception thrown (If so). As you imagine, this is the right place to handle how your integration will react depending on the different exceptions.
+
+
 
