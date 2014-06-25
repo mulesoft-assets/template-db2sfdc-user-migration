@@ -38,7 +38,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
                     <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email, LastModifiedDate FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
                 </enricher>
             </batch:step>
-            <batch:step name="upserUpsertInSalesforceStep" accept-expression="Accept expression: #[recordVars['userInSF'] is NullPayload ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(org.mule.templates.date.DateUtils.ISOStringDateToDateTime(recordVars['userInSF']['LastModifiedDate']))]">
+            <batch:step name="upserUpsertInSalesforceStep" accept-expression="recordVars['userInSF'] is NullPayload ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(org.mule.templates.date.DateUtils.ISOStringDateToDateTime(recordVars['userInSF']['LastModifiedDate']))">
                 <expression-component doc:name="add Id and profile Id to the payload"><![CDATA[if(recordVars['userInSF'] is NullPayload){
 	// Remove ID as it is an insert
 	payload.remove('Id');
