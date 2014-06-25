@@ -24,10 +24,8 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
     <batch:job name="syncUsersBatch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
-
             <db:select config-ref="GenericDatabaseConnectorMySql" doc:name="query database for users">
-                <db:parameterized-query><![CDATA[select firstname, lastname, id, email, salesforce_id from sf_user]]></db:parameterized-query>
-
+                <db:parameterized-query><![CDATA[select firstname, lastname, id, email, salesforce_id, LastModifiedDate from sf_user]]></db:parameterized-query>
 
 
 
@@ -36,12 +34,11 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
         </batch:input>
         <batch:process-records>
             <batch:step name="foreachUserFetchSalesforceStep">
-
                 <enricher source="#[payload]" target="#[recordVars['userInSF']]" doc:name="store result in record var 'userInSF'">
-                    <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
+                    <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email, LastModifiedDate FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
                 </enricher>
             </batch:step>
-            <batch:step name="upserUpsertInSalesforceStep">
+            <batch:step name="upserUpsertInSalesforceStep" accept-expression="Accept expression: #[recordVars['userInSF'] is NullPayload ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(org.mule.templates.date.DateUtils.ISOStringDateToDateTime(recordVars['userInSF']['LastModifiedDate']))]">
                 <expression-component doc:name="add Id and profile Id to the payload"><![CDATA[if(recordVars['userInSF'] is NullPayload){
 	// Remove ID as it is an insert
 	payload.remove('Id');
@@ -67,7 +64,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
                     <sfdc:upsert config-ref="SalesforceA"  doc:name="upsert Users in Salesforce" externalIdFieldName="Id" type="User">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
-                    <logger message="#[payload]" level="INFO" doc:name="log result"/>
+                    <logger message="#[payload]" level="INFO" doc:name="log Salesforce response"/>
                 </batch:commit>
 
             </batch:step>
@@ -87,8 +84,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
         </batch:on-complete>
     </batch:job>
     <flow name="mainFlow" doc:name="mainFlow">
-        <batch:execute name="syncUsersBatch" doc:name="Trigger syncUsersBatch batch step"/>
-
+        <batch:execute name="syncUsersBatch" doc:name="trigger syncUsersBatch"/>
         <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="catch Exception and call defaultChoiceExceptionStrategy"/>
     </flow>
 
