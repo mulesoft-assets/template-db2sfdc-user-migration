@@ -7,7 +7,7 @@
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" 
 	xmlns="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
-	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0" 
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.1" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -35,10 +35,10 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
         <batch:process-records>
             <batch:step name="foreachUserFetchSalesforceStep">
                 <enricher source="#[payload]" target="#[recordVars['userInSF']]" doc:name="store result in record var 'userInSF'">
-                    <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email, LastModifiedDate FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
+                    <sfdc:query-single config-ref="SalesforceA" query="SELECT Id, ProfileId, Email FROM User WHERE Email = '#[payload.email]'"  doc:name="query Salesforce for current user"/>
                 </enricher>
             </batch:step>
-            <batch:step name="upserUpsertInSalesforceStep" accept-expression="recordVars['userInSF'] is NullPayload ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(org.mule.templates.date.DateUtils.ISOStringDateToDateTime(recordVars['userInSF']['LastModifiedDate']))">
+            <batch:step name="upserUpsertInSalesforceStep" >
                 <expression-component doc:name="add Id and profile Id to the payload"><![CDATA[if(recordVars['userInSF'] is NullPayload){
 	// Remove ID as it is an insert
 	payload.remove('Id');
