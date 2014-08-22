@@ -18,7 +18,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-    <data-mapper:config name="map_to_list_user_" transformationGraphPath="map_to_list_user_.grf" doc:name="map_to_list_user_"/>
+
     <data-mapper:config name="map_to_user" transformationGraphPath="map_to_user.grf" doc:name="map_to_user"/>
     
     <batch:job name="syncUsersBatch">
