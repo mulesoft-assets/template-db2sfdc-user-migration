@@ -26,16 +26,16 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin I want to syncronize Users database and Salesfoce org.
+As a Salesforce admin I want to synchronize Users database and Salesforce organization.
 
-This Template should serve as a foundation for the process of migrating Users from database to one Salesfoce instance, being able to specify filtering criterias and desired behaviour when an User already exists in the destination org. 
+This Template should serve as a foundation for the process of migrating Users from database to one Salesforce instance, being able to specify filtering criteria and desired behavior when an User already exists in the destination organization. 
 
 As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in  Input, Process and On Complete stages.
 During the Input stage the Template will go to the Database and query all the existing Users that match the filter criteria.
 During the Process stage, each database user will be filtered depending on, if it has an existing matching User in the SFDC Org.
 The last step of the Process stage will group the users and create them in SFDC Org.
-Finally during the On Complete stage the Template will both otput statistics data into the console and send a notification email with the results of the batch excecution.
+Finally during the On Complete stage the Template will both output statistics data into the console and send a notification email with the results of the batch execution.
 
 # Considerations <a name="considerations"/>
 
