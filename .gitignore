@@ -2,7 +2,6 @@
 # Java defaults (https://github.com/github/gitignore/blob/master/Java.gitignore) #
 # ------------------------------------------------------------------------------ #
 *.class
-*.iml
 
 # Package Files #
 *.jar
@@ -36,7 +35,7 @@ local.properties
 
 # CDT-specific
 .cproject
-target/
+
 # PDT-specific
 .buildpath
 
@@ -44,22 +43,12 @@ target/
 # Studio-specific #
 # --------------- #
 .studio/
+flows/
 target/
-**/*.mflow
+/bin
 
-# --------------- #
-# Mule-specific #
-# --------------- #
-.mule/
 
-# --------------------------------------- #
-# Test credentials to be use locally only #
-# --------------------------------------- #
-src/test/resources/mule.test.properties
+pom.xml.releaseBackup
 
-# ------------- #
-# Idea specific #
-# ------------- #
-.idea
-**/*.iml
-**/.*.un~
+release.properties
+

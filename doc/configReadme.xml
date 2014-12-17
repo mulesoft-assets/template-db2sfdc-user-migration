@@ -5,16 +5,16 @@
 	</placeholders>
 	<sections>
 		<section id="use_case">
-As a Salesforce admin I want to synchronize Users database and Salesforce organization.
+As a Salesforce admin I want to syncronize Users database and Salesfoce org.
 
-This Template should serve as a foundation for the process of migrating Users from database to one Salesforce instance, being able to specify filtering criteria and desired behavior when an User already exists in the destination organization. 
+This Template should serve as a foundation for the process of migrating Users from database to one Salesfoce instance, being able to specify filtering criterias and desired behaviour when an User already exists in the destination org. 
 
 As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in  Input, Process and On Complete stages.
 During the Input stage the Template will go to the Database and query all the existing Users that match the filter criteria.
 During the Process stage, each database user will be filtered depending on, if it has an existing matching User in the SFDC Org.
 The last step of the Process stage will group the users and create them in SFDC Org.
-Finally during the On Complete stage the Template will both output statistics data into the console and send a notification email with the results of the batch execution. 
+Finally during the On Complete stage the Template will both otput statistics data into the console and send a notification email with the results of the batch excecution. 
 		</section>
 		<section id="considerations">
 <![CDATA[
@@ -75,6 +75,11 @@ After this, to trigger the use case you just need to hit the local http endpoint
 + sfdc.a.password `DylanPassword123`
 + sfdc.a.securityToken `avsfwCUl7apQs56Xq2AKi3X`
 + sfdc.a.url `https://login.salesforce.com/services/Soap/u/28.0`
+
++ user.localeSidKey `en_US`
++ user.languageLocaleKey `en_US`
++ user.timeZoneSidKey `America/New_York`
++ user.emailEncodingKey `ISO-8859-1`
 
 #### Dabase connection url
 + database.url=`jdbc:mysql://localhost:3306/mulesoft?user=root`
