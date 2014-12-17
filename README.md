@@ -4,6 +4,8 @@
 + [License Agreement](#licenseagreement)
 + [Use Case](#usecase)
 + [Considerations](#considerations)
+	* [DB Considerations](#dbconsiderations)
+	* [Salesforce Considerations](#salesforceconsiderations)
 + [Run it!](#runit)
 	* [Running on premise](#runonopremise)
 	* [Running on Studio](#runonstudio)
@@ -37,7 +39,6 @@ Finally during the On Complete stage the Template will both otput statistics dat
 
 # Considerations <a name="considerations"/>
 
-
 Once you have imported your Anypoint Template into Anypoint Studio you need to follow these steps to run it:
 
 + Locate the properties file `mule.dev.properties`, in src/main/resources
@@ -61,6 +62,48 @@ CREATE TABLE `sf_user` (
 + Once that is done, right click on you Anypoint Template project folder 
 + Hover you mouse over `"Run as"`
 + Click on  `"Mule Application"`
+
+## DB Considerations <a name="dbconsiderations"/>
+
+There may be a few things that you need to know regarding DB, in order for this template to work.
+
+This Anypoint Template may be using date time/timestamp fields from the DB in order to do comparisons and take further actions.
+While the template handles the time zone by sending all such fields in a neutral time zone, it can not handle **time offsets**.
+We define as **time offsets** the time difference that may surface between date time/timestamp fields from different systems due to a differences in the system's internal clock.
+The user of this template should take this in consideration and take the actions needed to avoid the time offset.
+
+### As source of data
+
+There are no particular considerations for this Anypoint Template regarding DB as data origin.
+
+
+## Salesforce Considerations <a name="salesforceconsiderations"/>
+
+There may be a few things that you need to know regarding Salesforce, in order for this template to work.
+
+In order to have this template working as expected, you should be aware of your own Salesforce field configuration.
+
+###FAQ
+
+ - Where can I check that the field configuration for my Salesforce instance is the right one?
+
+    [Salesforce: Checking Field Accessibility for a Particular Field][1]
+
+- Can I modify the Field Access Settings? How?
+
+    [Salesforce: Modifying Field Access Settings][2]
+
+
+[1]: https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US
+[2]: https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US
+
+
+### As destination of data
+
+There are no particular considerations for this Anypoint Template regarding Salesforce as data destination.
+
+
+
 
 # Run it! <a name="runit"/>
 Simple steps to get Database to Salesforce User Migration running.
@@ -127,6 +170,11 @@ In order to use this Mule Anypoint Template you need to configure properties (Cr
 + sfdc.a.password `DylanPassword123`
 + sfdc.a.securityToken `avsfwCUl7apQs56Xq2AKi3X`
 + sfdc.a.url `https://login.salesforce.com/services/Soap/u/28.0`
+
++ user.localeSidKey `en_US`
++ user.languageLocaleKey `en_US`
++ user.timeZoneSidKey `America/New_York`
++ user.emailEncodingKey `ISO-8859-1`
 
 #### Dabase connection url
 + database.url=`jdbc:mysql://localhost:3306/mulesoft?user=root`
