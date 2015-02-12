@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,7 +35,7 @@ import com.mulesoft.module.batch.BatchTestHelper;
  */
 public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
-	private static Logger log = Logger.getLogger(BusinessLogicIntegrationTest.class);
+	private static Logger log = LogManager.getLogger(BusinessLogicIntegrationTest.class);
 
 	private static final String PATH_TO_TEST_PROPERTIES = "./src/test/resources/mule.test.properties";
 	private static final String PATH_TO_SQL_SCRIPT = "src/main/resources/user.sql";
