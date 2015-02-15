@@ -224,14 +224,15 @@ This flow has Exception Strategy that basically consists on invoking the *defaul
 
 ## endpoints.xml<a name="endpointsxml"/>
 This is the file where you will found the inbound and outbound sides of your integration app.
-This Template has only an [HTTP Inbound Endpoint](http://www.mulesoft.org/documentation/display/current/HTTP+Endpoint+Reference) as the way to trigger the use case.
+This Template has only an [HTTP Listener Connector](http://www.mulesoft.org/documentation/display/current/HTTP+Listener+Connector) as the way to trigger the use case.
 
 ### Inbound Flow
-**HTTP Inbound Endpoint** - Start Report Generation
+**HTTP Listener Connector** - Start Report Generation
+
 + `${http.port}` is set as a property to be defined either on a property file or in CloudHub environment variables.
 + The path configured by default is `migrateUsers` and you are free to change for the one you prefer.
 + The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
-+ The endpoint is configured as a *request-response* since as a result of calling it the response will be the total of Users synced and filtered by the criteria specified.
++ The endpoint is a *request-response* since as a result of calling it the response will be the total of Users synced and filtered by the criteria specified.
 
 
 
