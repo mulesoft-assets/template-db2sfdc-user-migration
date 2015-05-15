@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp"
+<mule xmlns:spring="http://www.springframework.org/schema/beans" xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp"
 	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
 	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
@@ -14,7 +14,8 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd">
     <data-mapper:config name="map_to_list_user_" transformationGraphPath="map_to_list_user_.grf" doc:name="map_to_list_user_"/>
     <data-mapper:config name="map_to_user" transformationGraphPath="map_to_user.grf" doc:name="map_to_user"/>
     
@@ -23,6 +24,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
         <batch:input>
             <db:select config-ref="GenericDatabaseConnectorMySql" doc:name="query database for users">
                 <db:parameterized-query><![CDATA[select firstname, lastname, id, email, salesforce_id, LastModifiedDate from sf_user]]></db:parameterized-query>
+
             </db:select>
         </batch:input>
         <batch:process-records>
