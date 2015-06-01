@@ -35,7 +35,7 @@ import com.mulesoft.module.batch.BatchTestHelper;
  */
 public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 
-	private static Logger log = LogManager.getLogger(BusinessLogicIntegrationTest.class);
+	private static Logger LOG = LogManager.getLogger(BusinessLogicIntegrationTest.class);
 
 	private static final String PATH_TO_TEST_PROPERTIES = "./src/test/resources/mule.test.properties";
 	private static final String PATH_TO_SQL_SCRIPT = "src/main/resources/user.sql";
@@ -63,7 +63,7 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		try {
 			props.load(new FileInputStream(PATH_TO_TEST_PROPERTIES));
 		} catch (Exception e) {
-			log.error("Error occured while reading mule.test.properties", e);
+			LOG.error("Error occured while reading mule.test.properties", e);
 		}
 		emailUser = props.getProperty("existing.user.email");
 		
@@ -85,38 +85,38 @@ public class BusinessLogicIntegrationTest extends AbstractTemplateTestCase {
 		helper.awaitJobTermination(120 * 1000, 500);
 		helper.assertJobWasSuccessful();
 
-		SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("querySalesforce");
+		final SubflowInterceptingChainLifecycleWrapper subflow = getSubFlow("querySalesforce");
 		subflow.initialise();
 
-		MuleEvent event = subflow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
-		Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
-		log.info("querySalesforce result: " + result);
+		final MuleEvent event = subflow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
+		final Map<String, Object> result = (Map<String, Object>) event.getMessage().getPayload();
+		LOG.info("querySalesforce result: " + result);
 
 		Assert.assertNotNull(result);
 		Assert.assertEquals("There should be matching user in Salesforce now", user.get("email"), result.get("Email"));
 	}
 
 	private void createUsersInDB() throws Exception {
-		SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("insertUserDB");
+		final SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("insertUserDB");
 		flow.initialise();
 		user = createDbUser();
 
-		MuleEvent event = flow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
-		Object result = event.getMessage().getPayload();
-		log.info("insertUserDB result: " + result);
+		final MuleEvent event = flow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
+		final Object result = event.getMessage().getPayload();
+		LOG.info("insertUserDB result: " + result);
 	}
 
 	private void deleteUserFromDB() throws Exception {
-		SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("deleteUserDB");
+		final SubflowInterceptingChainLifecycleWrapper flow = getSubFlow("deleteUserDB");
 		flow.initialise();
 
-		MuleEvent event = flow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
-		Object result = event.getMessage().getPayload();
-		log.info("deleteUserDB result: " + result);
+		final MuleEvent event = flow.process(getTestEvent(user, MessageExchangePattern.REQUEST_RESPONSE));
+		final Object result = event.getMessage().getPayload();
+		LOG.info("deleteUserDB result: " + result);
 	}
 
 	private Map<String, Object> createDbUser() {
-		String name = "tst" + RandomUtils.nextInt(5);
+		final String name = "tst" + RandomUtils.nextInt(5);
 		return ObjectBuilder.aUser()
 				.with("firstname", name)
 				.with("lastname", name)
