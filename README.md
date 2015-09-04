@@ -34,7 +34,7 @@ As implemented, this Template leverage the [Batch Module](http://www.mulesoft.or
 The batch job is divided in  Input, Process and On Complete stages.
 During the Input stage the Template will go to the Database and query all the existing Users that match the filter criteria.
 During the Process stage, each database user will be filtered depending on, if it has an existing matching User in the SFDC Org.
-The last step of the Process stage will group the users and create them in SFDC Org.
+The last step of the Process stage will group the users and upsert them in SFDC Org.
 Finally during the On Complete stage the Template will both output statistics data into the console and send a notification email with the results of the batch execution.
 
 # Considerations <a name="considerations"/>
@@ -197,7 +197,7 @@ Being ***X*** the number of Users to be synchronized on each run.
 
 The division by ***200*** is because, by default, Users are gathered in groups of 200 for each Upsert API Call in the commit step. 
 
-For instance if 10 records are fetched from origin instance, then 20 api calls will be made (10 + 10).
+For instance if 10 records are fetched from origin instance, then 11 api calls will be made (10 + 1).
 
 
 # Customize It!<a name="customizeit"/>
