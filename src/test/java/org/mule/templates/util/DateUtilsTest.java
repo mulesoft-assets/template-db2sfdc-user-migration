@@ -11,6 +11,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.mule.api.transformer.TransformerException;
 
+@SuppressWarnings("deprecation")
 public class DateUtilsTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void nullConcactA() {
