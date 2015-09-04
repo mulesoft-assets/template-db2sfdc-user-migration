@@ -26,9 +26,9 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin I want to synchronize Users database and Salesfoce org.
+As a Salesforce admin I want to synchronize Users from database to Salesfoce.
 
-This Template should serve as a foundation for the process of migrating Users from database to one Salesfoce instance, being able to specify filtering criteria and desired behavior when an User already exists in the destination org. 
+This Template should serve as a foundation for the process of migrating Users from database to one Salesforce instance, being able to specify filtering criteria and desired behavior when an User already exists in the destination org. 
 
 As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in  Input, Process and On Complete stages.
@@ -182,6 +182,12 @@ In order to use this Mule Anypoint Template you need to configure properties (Cr
 
 #### Dabase connection url
 + database.url=`jdbc:mysql://localhost:3306/mulesoft?user=root`
+
+#### SMTP Services configuration
++ smtp.host `smtp.gmail.com`
++ smtp.port `587`
++ smtp.user `gmailuser`
++ smtp.password `gmailpassword`
 
 #### Email Details
 + mail.from `batch.migrateUsers.migration%40mulesoft.com`
