@@ -34,8 +34,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
                     <enrich source="#[payload.LastModifiedDate]" target="#[payload.LastModifiedDateFromSFDC]"/>
                 </enricher>
             </batch:step>
-            <batch:step name="upserUpsertInSalesforceStep" accept-expression="payload.sfid == null ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(org.mule.templates.date.DateUtils.ISOStringDateToDateTime(payload['LastModifiedDateFromSFDC']))">
-
+            <batch:step name="upserUpsertInSalesforceStep" accept-expression="payload.sfid == null ? true : org.mule.templates.date.DateUtils.dateToDateTime(payload['LastModifiedDate']).isAfter(new org.joda.time.DateTime(payload['LastModifiedDateFromSFDC']))">
 
                 <batch:commit size="200" doc:name="Batch Commit">
                     <dw:transform-message doc:name="Transform Users from DB to SFDC Users">
