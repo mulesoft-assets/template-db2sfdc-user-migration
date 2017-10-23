@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f33a31aa-b5ee-4596-95b3-2c017f634669" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="59194256-5c2f-49ea-8146-c46fbbf41c61" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.name}" />
+	</db:config>
+	<salesforce:sfdc-config name="Salesforce_Sfdc_config" doc:name="Salesforce Sfdc config" doc:id="97583da0-5499-4f2e-a610-5f6568d7e3c6" >
+		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" />
+	</salesforce:sfdc-config>
+	<configuration-properties file="mule-artifact.properties" doc:name="Configuration properties" doc:id="ca514625-7559-4c4d-a352-9acbc3a331dc" />
+	<configuration-properties file="common.properties" doc:name="Configuration properties" doc:id="77c4ebce-f817-4dff-99ad-6d2e76512d04" />
+	<configuration-properties file="mule.${mule.env}.properties" doc:name="Configuration properties" doc:id="34a99db6-7c63-46ba-89f5-fa5d1fed399e" />
+	
+	<email:smtp-config name="Gmail_SMTPS" doc:name="Email SMTP" doc:id="3fe54962-4f4c-4dc7-8aa4-acbad2d10e43" >
+		<email:smtps-connection host="${smtp.host}" port="${smtp.port}" user="${smtp.user}" password="${smtp.password}" tlsContext="TLS_Context" />
+	</email:smtp-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="f2135468-7efa-4e92-a191-eaca88df39f2" >
+		<tls:trust-store insecure="true" />
+	</tls:context>
+	<flow name="template-db2sfdc-user-migrationFlow" doc:id="df4ebcf2-a24d-4e05-a332-892f567ca3b8" >
+		<http:listener config-ref="HTTP_Listener_config" path="/migrateusers" doc:name="Start Synchronization" doc:id="581a094c-be02-4c91-9979-7ea58427bf6e" >
+			<http:response statusCode="200" />
+		</http:listener>
+		<db:select config-ref="Database_Config" doc:name="Query database for users" doc:id="e23ae333-5b53-4d3e-9137-a3a256ed30e7" >
+			<db:sql >SELECT first_name, last_name, nickname, alias, email, last_modified FROM User</db:sql>
+		</db:select>
+		<batch:job jobName="template-db2sfdc-user-migrationBatch_Job" doc:id="e9265e23-8dde-4855-8b03-b8ee709a4896" >
+			<batch:process-records >
+				<batch:step name="foreachUserFetchSalesforceStep" doc:id="73f5cdc7-59ae-46cb-b1b4-1b3a965e2f3e" >
+					<set-variable variableName="dbLastModified" value='#[payload.last_modified as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss.S"} &gt;&gt; |+00:00|]' doc:name="Parse 'last_modified' from DB" doc:id="06c11bf5-9589-41c2-90e8-23ae2fbeb1b9" />
+					<salesforce:query-single config-ref="Salesforce_Sfdc_config" doc:name="Query Salesforce for current user" doc:id="783b2ca3-1ace-4f8b-bc6d-d64b59563878" target="sfdcResponse">
+						<salesforce:salesforce-query >SELECT Id, ProfileId, LastModifiedDate FROM User WHERE Email = ':email'</salesforce:salesforce-query>
+						<salesforce:parameters ><![CDATA[#[output applicaton/java
+---
+{
+	"email" : payload.email
+}]]]></salesforce:parameters>
+					</salesforce:query-single>
+					<ee:transform doc:name="Transform result to custom fields" doc:id="5263e05a-1baf-4e7d-befd-a210be595768" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ 
+{
+	sfdcId: 				vars.sfdcResponse.Id,
+	sfdcProfileId: 			vars.sfdcResponse.ProfileId,
+	sfdcLastModifiedDate: 	vars.sfdcResponse.LastModifiedDate
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</batch:step>
+				<batch:step name="upserUpsertInSalesforceStep" doc:id="ef1fa6ea-9b07-4385-a0b2-491396f97a34" acceptExpression='payload.sfdcId == null or (vars.dbLastModified &gt; payload.sfdcLastModifiedDate)'>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="200">
+						<ee:transform doc:name="Transform Users from DB to SFDC Users" doc:id="362eaa43-d02c-414f-8722-528ffddcaa87" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	(Id : $.sfdcId) if ($.sfdcId != null),
+	(ProfileId: p('user.profileId')) if ($.sfdcId == null),
+	(LocaleSidKey : p('user.localeSidKey') ) if ($.sfdcId == null),
+	(LanguageLocaleKey : p('user.languageLocaleKey') ) if ($.sfdcId == null),
+	(EmailEncodingKey : p('user.emailEncodingKey') ) if ($.sfdcId == null),
+	(TimeZoneSidKey : p('user.timeZoneSidKey') ) if ($.sfdcId == null),	
+	
+	Email : $.email,
+	FirstName : $.first_name,
+	LastName : $.last_name,
+	CommunityNickname : $.nickname,
+	Alias: $.alias,
+	Username : $.email
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:upsert config-ref="Salesforce_Sfdc_config" externalIdFieldName="Id" type="User" doc:name="Upsert Users in Salesforce" doc:id="4a36339e-9efd-4264-a864-ddbdbc0b1732" />
+						<logger level="INFO" doc:name="Log Salesforce response" doc:id="5647e369-d5c8-47d3-8648-3c6449046dda" message="#[write(payload, 'application/json')]"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<scatter-gather doc:name="All" doc:id="562735e9-0d61-4732-bfae-ab3f7f20588c" >
+					<route >
+						<logger level="INFO" doc:name="Log migration process has finished" doc:id="0cc2b4cf-0aac-44b3-944a-adc80784517d" message="#['Migration process has finished: ' ++ write(payload, 'application/json')]"/>
+					</route>
+					<route >
+						<ee:transform doc:name="Transform Message" doc:id="adfd657e-cfda-4df0-86b8-b261cba22755" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis
+++ "\n Total Records: "				++ payload.totalRecords
+++ "\n Successful Records: "		++ payload.successfulRecords
+++ "\n Failed Records: "			++ payload.failedRecords
+++ "\n Loaded Records: "			++ payload.loadedRecords
+++ "\n Processed Records: " 		++ payload.processedRecords
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<email:send config-ref="Gmail_SMTPS" doc:name="Send Batch report per email" doc:id="4a80adf3-bb9f-4720-a805-58e3c7563bb5" fromAddress="${mail.from}" subject="${mail.subject}">
+							<email:to-addresses >
+								<email:to-address value="${mail.to}" />
+							</email:to-addresses>
+						</email:send>
+					</route>
+				</scatter-gather>
+			</batch:on-complete>
+		</batch:job>
+		<set-payload value="#[&quot;&lt;body style='font-family:Courier'&gt;&lt;h1&gt;Batch Process initiated&lt;/h1&gt;&lt;b&gt;ID:&lt;/b&gt;&quot; ++ payload.id ++ &quot;&lt;br/&gt;&lt;b&gt;Records to Be Processed: &lt;/b&gt;&quot; ++ payload.recordCount ++ &quot;&lt;br/&gt; &lt;b&gt;Start execution on: &lt;/b&gt;&quot; ++ now() ++ &quot;&lt;/body&gt;&quot;]" doc:name="Set HTTP response" doc:id="f2e6cade-dd2f-4a14-84e1-66ea2e542c20" mimeType="text/html"/>
+	</flow>
+</mule>
