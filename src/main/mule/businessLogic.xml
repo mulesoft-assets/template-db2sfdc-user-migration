@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+
+	<flow name="businesslogicFlow" doc:id="df4ebcf2-a24d-4e05-a332-892f567ca3b8">
+		<db:select config-ref="Database_Config" doc:name="Query database for users"
+			doc:id="e23ae333-5b53-4d3e-9137-a3a256ed30e7">
+			<db:sql>SELECT first_name, last_name, nickname, alias, email,
+				last_modified FROM User</db:sql>
+		</db:select>
+		<batch:job jobName="template-db2sfdc-user-migrationBatch_Job"
+			doc:id="e9265e23-8dde-4855-8b03-b8ee709a4896">
+			<batch:process-records>
+				<batch:step name="foreachUserFetchSalesforceStep" doc:id="73f5cdc7-59ae-46cb-b1b4-1b3a965e2f3e">
+					<set-variable variableName="dbLastModified"
+						value='#[payload.last_modified as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss.S"} &gt;&gt; |+00:00|]'
+						doc:name="Parse 'last_modified' from DB" doc:id="06c11bf5-9589-41c2-90e8-23ae2fbeb1b9" />
+					<salesforce:query-single config-ref="Salesforce_Sfdc_config"
+						doc:name="Query Salesforce for current user" doc:id="783b2ca3-1ace-4f8b-bc6d-d64b59563878"
+						target="sfdcResponse">
+						<salesforce:salesforce-query>SELECT Id, ProfileId,
+							LastModifiedDate FROM User WHERE Email = ':email'
+						</salesforce:salesforce-query>
+						<salesforce:parameters><![CDATA[#[output applicaton/java
+---
+{
+	"email" : payload.email
+}]]]></salesforce:parameters>
+					</salesforce:query-single>
+					<ee:transform doc:name="Transform result to custom fields"
+						doc:id="5263e05a-1baf-4e7d-befd-a210be595768">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ 
+{
+	sfdcId: 				vars.sfdcResponse.Id,
+	sfdcProfileId: 			vars.sfdcResponse.ProfileId,
+	sfdcLastModifiedDate: 	vars.sfdcResponse.LastModifiedDate
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</batch:step>
+				<batch:step name="upsertInSalesforceStep" doc:id="ef1fa6ea-9b07-4385-a0b2-491396f97a34"
+					acceptExpression='payload.sfdcId == null or (vars.dbLastModified &gt; payload.sfdcLastModifiedDate)'>
+					<batch:aggregator doc:name="Batch Aggregator"
+						doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="200">
+						<ee:transform doc:name="Transform Users from DB to SFDC Users"
+							doc:id="362eaa43-d02c-414f-8722-528ffddcaa87">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	(Id : $.sfdcId) if ($.sfdcId != null),
+	(ProfileId: p('user.profileId')) if ($.sfdcId == null),
+	(LocaleSidKey : p('user.localeSidKey') ) if ($.sfdcId == null),
+	(LanguageLocaleKey : p('user.languageLocaleKey') ) if ($.sfdcId == null),
+	(EmailEncodingKey : p('user.emailEncodingKey') ) if ($.sfdcId == null),
+	(TimeZoneSidKey : p('user.timeZoneSidKey') ) if ($.sfdcId == null),	
+	
+	Email : $.email,
+	FirstName : $.first_name,
+	LastName : $.last_name,
+	CommunityNickname : $.nickname,
+	Alias: $.alias,
+	Username : $.email
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:upsert config-ref="Salesforce_Sfdc_config"
+							externalIdFieldName="Id" type="User" doc:name="Upsert Users in Salesforce"
+							doc:id="4a36339e-9efd-4264-a864-ddbdbc0b1732" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete>
+				<scatter-gather doc:name="All"
+					doc:id="562735e9-0d61-4732-bfae-ab3f7f20588c">
+					<route>
+						<logger level="INFO" doc:name="Log migration process has finished"
+							doc:id="0cc2b4cf-0aac-44b3-944a-adc80784517d"
+							message="#['Migration process has finished: ' ++ write(payload, 'application/json')]" />
+					</route>
+					<route>
+						<ee:transform doc:name="Transform Message"
+							doc:id="adfd657e-cfda-4df0-86b8-b261cba22755">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis
+++ "\n Total Records: "				++ payload.totalRecords
+++ "\n Successful Records: "		++ payload.successfulRecords
+++ "\n Failed Records: "			++ payload.failedRecords
+++ "\n Loaded Records: "			++ payload.loadedRecords
+++ "\n Processed Records: " 		++ payload.processedRecords
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<email:send config-ref="Gmail_SMTPS" doc:name="Send Batch report per email"
+							doc:id="4a80adf3-bb9f-4720-a805-58e3c7563bb5" fromAddress="${mail.from}"
+							subject="${mail.subject}">
+							<email:to-addresses>
+								<email:to-address value="${mail.to}" />
+							</email:to-addresses>
+						</email:send>
+					</route>
+				</scatter-gather>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+
+	<flow name="mainFlow" doc:id="7c0a5bef-b3d5-442f-bff3-10d038f69a5e">
+		<flow-ref doc:name="businesslogicFlow" doc:id="91360ede-4d71-44c7-9b64-8ee762e04ea0"
+			name="businesslogicFlow" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error Propagate" doc:id="488b507d-e26c-4c56-8759-8bb4f6645d71"
+				type="ANY">
+				<flow-ref doc:name="errorHandlingFlow" doc:id="afdaf73c-0137-4d60-84f6-5c41234771a3"
+					name="errorHandlingFlow" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
