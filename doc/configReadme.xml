@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<configuration>
+	<placeholders>
+		<placeholder id="template_name">Database to Salesforce User Migration</placeholder>
+	</placeholders>
+	<sections>
+		<section id="use_case">
+As a Salesforce admin I want to synchronize Users from database to Salesfoce.
+
+This Template should serve as a foundation for the process of migrating users from database to one Salesforce instance, being able to specify filtering criteria and desired behavior if an user already exists in the destination org. 
+
+As implemented, this Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+The batch job is divided in Process Records and On Complete stages.
+Firstly the Template hit the Database and query all existing Users matching the filter criteria.
+During the Process stage, each database user will be filtered depending on if it has an existing matching User in the SFDC Org.
+The last step of the Process stage will group the users and upsert them in SFDC Org.
+Finally during the On Complete stage the Template will both output statistics data into the console and send notification email with the results of the batch execution. 
+		</section>
+		<section id="considerations">
+<![CDATA[
+
+This template is customized for MySQL. To use it with different SQL implementation, some changes are necessary.
+
+Once you have imported your Anypoint Template into Anypoint Studio you need to follow these steps to run it:
+
++ Locate the properties file `mule.dev.properties`, in src/main/resources
++ Complete all the properties required as per the examples in the section [Properties to be configured](#propertiestobeconfigured)
++ Add dependency for your Database driver to the pom.xml
++ Configure Database Connector in Global Elements section of the config flow to use your database specific driver.
++ By default this template relies on existing table **"user"** in the database of your choice, so it will perform sql statements against this table, but feel free to customize prepared statements to use different database table or columns.
++ Script for creating database table (MySQL syntax)
+
+<pre>
+CREATE TABLE `sf_user` (
+  `firstname` varchar(255) DEFAULT NULL,
+  `lastname` varchar(255) DEFAULT NULL,
+  `salesforce_id` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+)
+</pre>
++ Optionally customize query templates in `businessLogic.xml` if they don't match sql grammar of database of your choice
++ Once that is done, right click on you Anypoint Template project folder 
++ Hover you mouse over `"Run as"`
++ Click on  `"Mule Application"`
+]]>
+		</section>
+		<section id="run_it">
+<![CDATA[
+
+In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
+
+	{
+	  "Message": "Batch Process initiated",
+	  "ID": "7fc674b0-e4b7-11e7-9627-100ba905a441",
+	  "RecordCount": 32,
+	  "StartExecutionOn": "2017-12-19T13:24:03Z"
+	}
+]]>
+		</section>
+		<section id="running_on_cloudhub">
+<![CDATA[
+Follow other steps defined [here](#runonpremise) and once your app is all set and started, supposing you choose as domain name `sfdcusermigration` to trigger the use case you just need to hit `http://sfdcusermigration.cloudhub.io/migrateusers` and report will be sent to the emails configured.
+]]>
+		</section>
+		<section id="running_on_standalone">
+<![CDATA[
+After this, to trigger the use case you just need to hit the local http endpoint with the port you configured in your file. If this is, for instance, `9090` then you should hit: `http://localhost:9090/migrateUsers` and this will create a CSV report and send it to the mails set.
+]]>
+		</section>
+		<section id="application_configuration">
+		<![CDATA[
++ http.port `9090` 
+
+#### SalesForce Connector configuration for company A
++ sfdc.a.username `bob.dylan@orga`
++ sfdc.a.password `DylanPassword123`
++ sfdc.a.securityToken `avsfwCUl7apQs56Xq2AKi3X`
+
++ user.localeSidKey `en_US`
++ user.languageLocaleKey `en_US`
++ user.timeZoneSidKey `America/New_York`
++ user.emailEncodingKey `ISO-8859-1`
+
+#### Dabase connection url
++ db.host `localhost`
++ db.port `3306`
++ db.user `user-name`
++ db.password `user-password`
++ db.databasename `dbname`
+
+#### SMTP Services configuration
++ smtp.host `smtp.gmail.com`
++ smtp.port `587`
++ smtp.user `gmailuser`
++ smtp.password `gmailpassword`
+
+#### Email Details
++ mail.from `batch.migrateUsers.migration%40mulesoft.com`
++ mail.to `cesar.garcia@mulesoft.com`
++ mail.subject `Batch Job Finished Report`
+]]>
+		</section>
+		<section id="api_calls">
+		<![CDATA[
+Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. User Migration Template calls to the API can be calculated using the formula:
+
+***X + 1 / 200***
+
+Being ***X*** the number of Users to be synchronized on each run. 
+
+The division by ***200*** is because, by default, Users are gathered in groups of 200 for each Upsert API Call in the commit step. 
+
+For instance if 10 records are fetched from origin instance, then 11 api calls will be made (10 + 1).
+]]>
+		</section>
+		<section id="default_endpoints_xml">
+		<![CDATA[
+This is the file where you will found the inbound and outbound sides of your integration app.
+This Template has only an [HTTP Listener Connector](http://www.mulesoft.org/documentation/display/current/HTTP+Listener+Connector) as the way to trigger the use case.
+
+$H$H# Inbound Flow
+**HTTP Listener Connector** - Start Report Generation
+
++ `${http.port}` is set as a property to be defined either on a property file or in CloudHub environment variables.
++ The path configured by default is `migrateUsers` and you are free to change for the one you prefer.
++ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
++ The endpoint is a *request-response* since as a result of calling it the response will be the total of Users synced and filtered by the criteria specified.
+]]>
+		</section>
+		<section id="default_business_logic_xml">
+		<![CDATA[
+Functional aspect of the Template is implemented on this XML, directed by one flow responsible of excecuting the logic.
+For the pourpose of this particular Template the *mainFlow* just excecutes a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing). which handles all the logic of it.
+This flow has Exception Strategy that basically consists on invoking the *defaultChoiseExceptionStrategy* defined in *errorHandling.xml* file.
+]]>
+		</section>
+	</sections>
+</configuration>
