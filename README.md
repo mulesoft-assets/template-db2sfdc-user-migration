@@ -7,11 +7,9 @@ This template uses batch to efficiently process many records at a time. A databa
 
 ![c06ff1ca-4cd2-46cc-9f77-44dc760ad64f-image.png](https://exchange2-file-upload-service-kprod.s3.us-east-1.amazonaws.com:443/c06ff1ca-4cd2-46cc-9f77-44dc760ad64f-image.png)
 
-**Note:** In the following video, references to DataMapper have been replaced in the template with DataWeave transformations.
+**Note:** Any references in the video to DataMapper have been updated in the template with DataWeave transformations.
 
-```
-![](https://www.youtube.com/embed/2LVAhmJBL9g?wmode=transparent)
-```
+[![YouTube Video](http://img.youtube.com/vi/2LVAhmJBL9g/0.jpg)](https://www.youtube.com/watch?v=2LVAhmJBL9g)]
 
 # License Agreement
 
