@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<munit:config name="test-suite.xml" doc:name="MUnit configuration" />
+	<configuration-properties doc:name="Configuration properties"
+		doc:id="c382dc50-b83c-41be-ad31-42ccb929d758" file="mule.test.properties" />
+	<munit:before-test name="test-suiteBefore_Test"
+		description="Before tests actions" doc:id="7f8facb1-95ae-4456-9448-faf3a3a89dc9">
+		<set-variable value="#[uuid()]" doc:name="Set testedCommunityNickname"
+			doc:id="ebf516a3-d0c7-4e5c-8e2c-4fb54810fc47" variableName="testedCommunityNickname " />
+		<set-variable value="test1010101010@test.com" doc:name="Set UserEmail"
+			doc:id="8ade7bba-7c17-40de-b11f-ec4a5c0d57f1" variableName="UserEmail" />
+		<ee:transform doc:name="Prepare testing data for DB"
+			doc:id="7c253cc1-4a09-4e71-a9c5-74e5dbbf5848">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[
+	{
+		first_name: "User_FN",
+		last_name: "User_LN",
+		nickname: vars.testedCommunityNickname,
+		alias: "my_alias",
+		email: vars.UserEmail
+	}
+]
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Insert User to DB"
+			doc:id="fa2247fe-f4e5-46fd-a2f9-b725cf3a2bd0" config-ref="Database_Config">
+			<db:sql>INSERT INTO User (
+				first_name,
+				last_name,
+				nickname,
+				alias,
+				email
+				) VALUES (
+				:first_name,
+				:last_name,
+				:nickname,
+				:alias,
+				:email
+				)
+</db:sql>
+		</db:bulk-insert>
+ 		<salesforce:query doc:name="Store unchanged SFDC user" doc:id="c9c11af4-ff65-49c0-8266-c579d98d7c54" config-ref="Salesforce_Sfdc_config" target="unchangedSFDCUser" targetValue="#[payload[0]]">
+			<salesforce:salesforce-query>SELECT CommunityNickname, Id FROM User WHERE Email = ':email'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"email" : vars.UserEmail
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<munit-tools:mock-when doc:name="Mock email processor to avoid sending email"
+			doc:id="17ab3357-3f08-4456-9f14-c41c281e06f1" processor="email:send">
+			<munit-tools:then-return />
+		</munit-tools:mock-when>
+	</munit:before-test>
+	<munit:test name="test-suite-businesslogicFlowTest"
+		description="Test" doc:id="4ffcda90-21bf-4cd4-9460-09cf6ca578e5">
+		<munit:execution>
+ 			<flow-ref doc:name="businessLogicFlow" doc:id="3e0601a1-1b47-4974-83b0-8d30726559dd"
+ 				name="businesslogicFlow" />
+			<scripting:execute doc:name="Sleep for 10s until the processing is completed"
+				doc:id="b09fe305-3000-4571-b824-8b555395ccb7" engine="groovy">
+				<scripting:code>sleep(5000)</scripting:code>
+			</scripting:execute>
+			<flow-ref doc:name="updateTest" doc:id="bb921782-20b4-41df-8aeb-1acb94826e02"
+				name="updateTest" />
+		</munit:execution>
+	</munit:test>
+	<sub-flow name="updateTest" doc:id="eb2c1733-e157-4563-9321-829a688c161f">
+		<salesforce:query doc:name="Select test user"
+			doc:id="eb801266-1f1a-465e-9709-30e91798e974" config-ref="Salesforce_Sfdc_config">
+			<salesforce:salesforce-query>SELECT CommunityNickname, Id FROM User WHERE Email = ':email'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"email" : vars.UserEmail
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<munit-tools:assert-that doc:name="Assert that CommunityNickname of User was changed"
+			doc:id="798bd6c1-88b2-4cc9-916d-ed7cb4adc0c8" expression="#[payload[0].CommunityNickname]"
+			is='#[MunitTools::equalTo(vars.testedCommunityNickname)]' />
+	</sub-flow>
+	<munit:after-test name="test-suiteAfter_Test"
+		description="After tests actions" doc:id="5b85bb9e-67e6-47f7-8f71-53a39f147fc8">
+		<db:delete doc:name="Delete User from DB" doc:id="6aff5b09-2af5-4627-8aa7-a0ac361bbd81"
+			config-ref="Database_Config">
+			<db:sql>DELETE FROM User WHERE email LIKE '#[vars.UserEmail]'</db:sql>
+		</db:delete>
+ 		<salesforce:upsert type="User" doc:name="Discard changes made to tested User" doc:id="cdbcc8dc-b21a-4032-85f4-a77bc2c7f3ad" config-ref="Salesforce_Sfdc_config" externalIdFieldName="Id" >
+			<salesforce:records ><![CDATA[#[[vars.unchangedSFDCUser]]]]></salesforce:records>
+		</salesforce:upsert>
+	</munit:after-test>
+
+
+</mule>
