@@ -99,7 +99,7 @@ output application/java
 	</sub-flow>
 	<munit:after-test name="test-suiteAfter_Test"
 		description="After tests actions" doc:id="5b85bb9e-67e6-47f7-8f71-53a39f147fc8">
- 		<db:delete doc:name="Copy_of_Delete User from DB" doc:id="676204e7-0a14-4900-a751-71aba3b97960" config-ref="Database_Config">
+ 		<db:delete doc:name="Delete User from DB" doc:id="676204e7-0a14-4900-a751-71aba3b97960" config-ref="Database_Config">
 			<db:sql>DELETE FROM User</db:sql>
 		</db:delete>
 		<salesforce:upsert type="User" doc:name="Discard changes made to tested User" doc:id="cdbcc8dc-b21a-4032-85f4-a77bc2c7f3ad" config-ref="Salesforce_Sfdc_config" externalIdFieldName="Id" >
