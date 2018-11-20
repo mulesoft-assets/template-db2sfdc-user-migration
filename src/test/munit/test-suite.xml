@@ -21,8 +21,6 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		description="Before tests actions" doc:id="7f8facb1-95ae-4456-9448-faf3a3a89dc9">
 		<set-variable value="#[uuid()]" doc:name="Set testedCommunityNickname"
 			doc:id="ebf516a3-d0c7-4e5c-8e2c-4fb54810fc47" variableName="testedCommunityNickname " />
-		<set-variable value="test1010101010@test.com" doc:name="Set UserEmail"
-			doc:id="8ade7bba-7c17-40de-b11f-ec4a5c0d57f1" variableName="UserEmail" />
 		<ee:transform doc:name="Prepare testing data for DB"
 			doc:id="7c253cc1-4a09-4e71-a9c5-74e5dbbf5848">
 			<ee:message>
@@ -35,7 +33,7 @@ output application/java
 		last_name: "User_LN",
 		nickname: vars.testedCommunityNickname,
 		alias: "my_alias",
-		email: vars.UserEmail
+		email: p('test.user.email')
 	}
 ]
 
@@ -59,12 +57,12 @@ output application/java
 				)
 </db:sql>
 		</db:bulk-insert>
- 		<salesforce:query doc:name="Store unchanged SFDC user" doc:id="c9c11af4-ff65-49c0-8266-c579d98d7c54" config-ref="Salesforce_Sfdc_config" target="unchangedSFDCUser" targetValue="#[payload[0]]">
+		<salesforce:query doc:name="Store unchanged SFDC user" doc:id="c9c11af4-ff65-49c0-8266-c579d98d7c54" config-ref="Salesforce_Sfdc_config" target="unchangedSFDCUser" targetValue="#[payload[0]]">
 			<salesforce:salesforce-query>SELECT CommunityNickname, Id FROM User WHERE Email = ':email'</salesforce:salesforce-query>
 			<salesforce:parameters ><![CDATA[#[output application/java
 ---
 {
-	"email" : vars.UserEmail
+	"email" : p('test.user.email')
 }]]]></salesforce:parameters>
 		</salesforce:query>
 		<munit-tools:mock-when doc:name="Mock email processor to avoid sending email"
@@ -92,7 +90,7 @@ output application/java
 			<salesforce:parameters ><![CDATA[#[output application/java
 ---
 {
-	"email" : vars.UserEmail
+	"email" : p('test.user.email')
 }]]]></salesforce:parameters>
 		</salesforce:query>
 		<munit-tools:assert-that doc:name="Assert that CommunityNickname of User was changed"
@@ -101,11 +99,10 @@ output application/java
 	</sub-flow>
 	<munit:after-test name="test-suiteAfter_Test"
 		description="After tests actions" doc:id="5b85bb9e-67e6-47f7-8f71-53a39f147fc8">
-		<db:delete doc:name="Delete User from DB" doc:id="6aff5b09-2af5-4627-8aa7-a0ac361bbd81"
-			config-ref="Database_Config">
-			<db:sql>DELETE FROM User WHERE email LIKE '#[vars.UserEmail]'</db:sql>
+ 		<db:delete doc:name="Copy_of_Delete User from DB" doc:id="676204e7-0a14-4900-a751-71aba3b97960" config-ref="Database_Config">
+			<db:sql>DELETE FROM User</db:sql>
 		</db:delete>
- 		<salesforce:upsert type="User" doc:name="Discard changes made to tested User" doc:id="cdbcc8dc-b21a-4032-85f4-a77bc2c7f3ad" config-ref="Salesforce_Sfdc_config" externalIdFieldName="Id" >
+		<salesforce:upsert type="User" doc:name="Discard changes made to tested User" doc:id="cdbcc8dc-b21a-4032-85f4-a77bc2c7f3ad" config-ref="Salesforce_Sfdc_config" externalIdFieldName="Id" >
 			<salesforce:records ><![CDATA[#[[vars.unchangedSFDCUser]]]]></salesforce:records>
 		</salesforce:upsert>
 	</munit:after-test>
