@@ -8,7 +8,7 @@
 		<db:my-sql-connection database="${db.name}" host="${db.host}" password="${db.password}" port="${db.port}" user="${db.user}" />
 	</db:config>
 	<salesforce:sfdc-config name="Salesforce_Sfdc_config" doc:id="97583da0-5499-4f2e-a610-5f6568d7e3c6" doc:name="Salesforce Sfdc config">
-		<salesforce:basic-connection password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" username="${sfdc.username}" />
+		<salesforce:basic-connection password="${sfdc.password}" securityToken="${sfdc.securityToken}" username="${sfdc.username}" />
 	</salesforce:sfdc-config>
 	<configuration-properties file="mule-artifact.properties" doc:id="ca514625-7559-4c4d-a352-9acbc3a331dc" doc:name="Configuration properties" />
 	<configuration-properties file="common.properties" doc:id="77c4ebce-f817-4dff-99ad-6d2e76512d04" doc:name="Configuration properties" />
