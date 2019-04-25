@@ -43,7 +43,7 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
-payload ++ 
+payload ++
 {
 	sfdcId: 				vars.sfdcResponse.Id,
 	sfdcProfileId: 			vars.sfdcResponse.ProfileId,
@@ -55,7 +55,7 @@ payload ++
 				<batch:step name="upsertInSalesforceStep" doc:id="ef1fa6ea-9b07-4385-a0b2-491396f97a34"
 					acceptExpression='payload.sfdcId == null or (vars.dbLastModified &gt; payload.sfdcLastModifiedDate)'>
 					<batch:aggregator doc:name="Batch Aggregator"
-						doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="200">
+						doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="${aggregator.size}">
 						<ee:transform doc:name="Transform Users from DB to SFDC Users"
 							doc:id="362eaa43-d02c-414f-8722-528ffddcaa87">
 							<ee:message>
@@ -68,8 +68,8 @@ payload map {
 	(LocaleSidKey : p('user.localeSidKey') ) if ($.sfdcId == null),
 	(LanguageLocaleKey : p('user.languageLocaleKey') ) if ($.sfdcId == null),
 	(EmailEncodingKey : p('user.emailEncodingKey') ) if ($.sfdcId == null),
-	(TimeZoneSidKey : p('user.timeZoneSidKey') ) if ($.sfdcId == null),	
-	
+	(TimeZoneSidKey : p('user.timeZoneSidKey') ) if ($.sfdcId == null),
+
 	Email : $.email,
 	FirstName : $.first_name,
 	LastName : $.last_name,
