@@ -55,7 +55,7 @@ payload ++
 				<batch:step name="upsertInSalesforceStep" doc:id="ef1fa6ea-9b07-4385-a0b2-491396f97a34"
 					acceptExpression='payload.sfdcId == null or (vars.dbLastModified &gt; payload.sfdcLastModifiedDate)'>
 					<batch:aggregator doc:name="Batch Aggregator"
-						doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="${aggregator.size}">
+						doc:id="1df6c548-87de-4cfe-9ebb-412cab2b1499" size="${page.size}">
 						<ee:transform doc:name="Transform Users from DB to SFDC Users"
 							doc:id="362eaa43-d02c-414f-8722-528ffddcaa87">
 							<ee:message>
